@@ -2,17 +2,21 @@
 title: 'EGAD National Snapshot Survey: Change, Progress and Improvement'
 author: "Jake Kaupp"
 date: "April 26, 2016"
-output: html_document
+output:
+  word_document:
+    fig_caption: yes
+    keep_md: yes
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.retina = 2)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 source('./R/wrangling.R')
 #knitr::read_chunk('./R/wrangling.R')
 knitr::read_chunk('./R/figures.R')
 
 
-number = local({
+number <- local({
   i = 0
   function(x) {
     i <<- i + 1
@@ -47,7 +51,7 @@ The EGAD national snapshot survey drew inspiration and select prompts from the N
 
 In total there were 24 responses to the first administration of they survey and 17 for the second.  This provides a representative sample from 30 institutions out of a possible 43 Canadian institutions with accredited engineering programs, illustrated on the map below.
 
-```{r map, fig.width = 12, fig.height = 9, fig.cap = number("Institutions Represented in the EGAD National Snapshot Survey")}
+```{r map, fig.width = 12, fig.height = 9, fig.cap = "Institutions Represented in the EGAD National Snapshot Survey"}
 ```
 
 The survey was sent to those thought to be in charge of their institution's process.  If that person was unknown, it was sent to the Dean.  The differences in role between those who responded to the survey is illustrated in Table 1 below.
@@ -179,15 +183,14 @@ There are also seven additional open-resonse questions. Due to the complexity of
 
 ## Conclusions
 
-The results from this initial sample of responses have highlighted some interesting avenues for analysis and future investigation. The initial results were from the scale items alone, and did not include any of the open-response items. The reason for this was time-based, as qualitative analysis of these responses takes considerable time.
+The constrated results from both surveys have illustrated some interesting shifts in practise and viewpoints regarding outcomes-based assessment, continuous improvement and graduate attributes accreditation.  Collectively, these results illustrate the gradual change towards embracing an external mandate for a truly useful purposes.  The responses to items illustrate a community that is embracing the opportunity to use this to facilitate a cultural shift within the engineering discipline, moving away from the traditional outdated focus of education by transmission of knowledge, opaque and confusing assessment practises and sparse curriculum renewal.  Replacing it it a system drawn from effective educational practise that focuses on knowledge, skill and professional conduct, an open and transparent assessment approach and data-informed curriculum and program improvement.  
 
-The next steps for the research collaboration are to complete the implementation of the survey at the remaining institutions, and include any additional institutions that have yet to participate. Once data collection has concluded, a paper is planned to address the development and validation of the instrument along with the report on the complete national dataset. Future analysis includes establishing reliability measures for scales and constructs, cross-tabulation by various factors and demographics, and qualitative analysis of open-text responses. More immediate concerns are the timeline for dissemination of institutional data and the aggregate national dataset, and the long-term management, collection and reporting on the data.
+The gradual movement toward effective practise is refreshing to see in a discipline that may not always have the best reputation for embracing new developments in educational research and evaluation.  These shifts illustrate a growing awareness of engineering institutions regarding effective assessment, the collection and analysis of educational data and a rapidly growing interest and expertise in educational technology.  These results illustrate that Canadian engineering institutions are truly investing in bettering their programs and the engineering curriculum to improve student learning.  There are also signs of institutions considering the long-term aspects of accreditation, and employing the characteristic systems-level thinking of engineering to consider elements of sustainability, impact, effectiveness and resources.
 
-Even in its infancy, this instrument and approach has garnered attention from colleagues outside of engineering and the steering committee has received positive feedback about the impact of this project and its importance. This highlights a need for the continued use, development and improvement of the instrument, as well as a effort to move the CEEA research collaboration into the next phase.
+This analysis is only preliminary, as there is considerable opportunity to explore these results further and use the demographics to conduct a cross-tabular analysis by program characteristics and enrolment numbers.  It is the intention of the EGAD project to release the full analysis of both survey administrations in an upcoming white paper which will be freely available on the EGAD website.
 
-In the interest of conducting open and collaborative research, nearly all collection, analysis, writing and report generation was done using open-source or readily available technologies. These include Google Drive, R, RStudio, Github and Atom. This report was written in rMarkdown in RStudio, typeset using Knitr & pandoc and hosted at Gitub. You can view this report, the code that created and associated analysis at http://github.com/jkaupp/R-SCEI.
+In the interest of conducting open and collaborative research, nearly all collection, analysis, writing and report generation was done using open-source or readily available technologies. These include FluidSurveys, R, RStudio, Github. This report was written in rMarkdown in RStudio, typeset using the knitr package & pandoc and hosted at Gitub. You can view this report, the code that created and associated analysis at https://github.com/EGADProject/EGAD-Snapshot-Survey.
 
+#Acknowledgements
 
-
-Collectively, t
-
+The EGAD Project would like to acknoledge the funding and support provided by the National Council of Deans of Engineering and Applied Science (NCDEAS) and Engineers Canada.
