@@ -54,7 +54,29 @@ preProcess <- function(df, labels) {
   
 }
 
-gghBarPlot <- function(df, type = NULL){
+
+ggSlope <- function(df, wrap = 30, nudge = 0, size = 14){
+  
+  df <- mutate(df, percent_label = scales::percent(percentage))
+  
+  labels <- select(df, year, value, percentage) %>% 
+    spread(year, percentage) %>% 
+    select(value, `2013-2014`) %>% 
+    gather(year,percentage, -value) %>% 
+    mutate(value = str_wrap(value, wrap)) 
+    
+  ggplot(df, aes(x = year, y = percentage)) +
+    geom_path(aes(group = value)) +
+    geom_label(aes(label = percent_label),label.size = 0, fill = "white", family = "Oswald Light") +
+    geom_text(aes(label = value), data = labels, nudge_x = nudge, family = "Oswald Light") +
+    labs(x = NULL, y = NULL) +
+    jkmisc::theme_jk(grid = FALSE, base_size = size) +
+    theme(axis.text.y = element_blank())
+     
+  
+}
+
+gghBarPlot <- function(df, type = NULL, t_size = 3){
   
   max <- max(df$n)
   
@@ -63,15 +85,13 @@ gghBarPlot <- function(df, type = NULL){
   
   if(!is.null(type)){
     plot <- ggplot(df, aes(x = value, y = percentage, fill = year)) +
-      geom_bar(stat = "identity", position = position_dodge(), width = 0.6) +
-      #geom_hline(yintercept=seq(0,1,0.25), color = "white") +
-      geom_text(aes(label = scales::percent(percentage), fontface = "bold"), color = "white", position = position_dodge(width = 0.6), hjust = 1.1, size = 3) +
+      geom_bar(stat = "identity", position = position_dodge()) +
+      geom_text(aes(label = scales::percent(percentage), fontface = "bold"), color = "white", position = position_dodge(width = 1), hjust = 1.1, size = t_size, family = "Oswald-Light") +
       scale_y_continuous(labels = scales::percent, limits = c(0,1))
   } else {
     plot <- ggplot(df, aes(x = value, y = n, fill = year)) +
-      geom_bar(stat = "identity", position = position_dodge(), width = 0.6) +
-      #geom_hline(yintercept=seq(0,max,5), color = "white") +
-      geom_text(aes(label = n, fontface = "bold"), color = "white", position = position_dodge(width = 0.6), hjust = 1.5, size = 3) 
+      geom_bar(stat = "identity", position = position_dodge()) +
+      geom_text(aes(label = n, fontface = "bold"), color = "white", position = position_dodge(width =1), hjust = 1.5, size = t_size) 
   }
 
    plot <- plot + scale_x_discrete(labels = function(x) str_wrap(str_to_title(x),30)) +
@@ -79,7 +99,7 @@ gghBarPlot <- function(df, type = NULL){
     labs(y = NULL, x = NULL) +
     coord_flip() +
     theme(
-      text = element_text(color = "black"),
+      text = element_text(color = "black", size = 20),
       legend.position = "bottom",
       legend.key = element_blank(),
       legend.background = element_rect(fill = "white"),
@@ -141,7 +161,7 @@ likert_plot <- function(df, flevels, p_arrange = NULL, t_size = 3, p_center = NU
   
   plot(plot_data, colors = scale_color, panel.arrange = p_arrange, center = p_center, text.size = t_size, group.order = g_order, wrap = 30, plot.percent.neutral = p_neutral) +
     theme(
-      text = element_text(color = "black"),
+      text = element_text(color = "black", size = 20),
       legend.position = "bottom",
       legend.key = element_blank(),
       legend.background = element_rect(fill = "white"),
@@ -160,7 +180,7 @@ likert_plot <- function(df, flevels, p_arrange = NULL, t_size = 3, p_center = NU
       plot.caption = element_text(size = 10, face = "italic"))
 }
 
-ggHlollipop  <- function(df){
+ggHlollipop  <- function(df, t_size = 3){
   
   max <- max(df$n)
   
@@ -172,7 +192,7 @@ ggHlollipop  <- function(df){
   plot <- ggplot(df, aes(x = year, y = percentage, fill = year)) +
     geom_path(aes(x = year, y = percentage, color = value, group = value)) +
     # geom_point(aes(x = year, y = percentage, color = value), pch = 21, fill = "white") +
-    geom_label(aes(label = scales::percent(percentage), fontface = "bold", hjust = h_just, color = value),fill = "white", size = 3, label.size = 0, show.legend = FALSE) +
+    geom_label(aes(label = scales::percent(percentage), fontface = "bold", hjust = h_just, color = value),fill = "white", size = t_size, label.size = 0, show.legend = FALSE) +
     annotate("text", x = 2.2, y = filter(df, year == "2015-2016", value == "no")$percentage, label = "No", color = Viridis_2[2], fontface = "bold") +
     annotate("text", x = 2.2, y = filter(df, year == "2015-2016", value == "yes")$percentage, label = "Yes", color = Viridis_2[1], fontface = "bold") +
     scale_y_continuous(labels = scales::percent, limits = c(-0.3,1.2), expand = c(0,0)) +
@@ -180,7 +200,7 @@ ggHlollipop  <- function(df){
     scale_color_manual(name = NULL, values = Viridis_2) +
     labs(y = NULL, x = NULL) +
     theme(
-      text = element_text(color = "black"),
+      text = element_text(color = "black", size = 20),
       legend.position = "none",
       legend.key = element_blank(),
       legend.background = element_rect(fill = "white"),
@@ -204,11 +224,13 @@ ggHlollipop  <- function(df){
   
 # ---- map ----
 ggplot(ca_map) +
-  geom_map(map = ca_map, aes(x = long, y = lat,map_id = id), color = "grey90", fill = "grey10", size = 0.15) +
-  geom_label_repel(data = national_frame, aes(x = long, y = lat, label = str_wrap(institution,15)), segment.size = 0.2, size = 2, segment.color = "grey90", box.padding = unit(0, "lines")) +
-  geom_point(data = national_frame, fill = "#DB2C00", color = "grey10", aes(x=long, y=lat), size = 3, pch = 21) +
+  geom_map(map = ca_map, aes(x = long, y = lat,map_id = id), color = "grey90", fill = "grey50") +
+  # geom_label_repel(data = national_frame, aes(x = long, y = lat, label = str_wrap(institution,10)), segment.size = 0.2, size = 3, segment.color = "grey50", box.padding = unit(0, "lines")) +
+  geom_point(data = national_frame, color = "grey10", fill = "blue", aes(x=long, y=lat), size = 3, pch = 21) +
+  labs(x = NULL, y = NULL, title = "Responding Institutions") +
   coord_map("lambert", 44, 85) +
   theme_map() 
+
 
 # ---- q4 ----
 
@@ -278,7 +300,7 @@ cleaned_data %>%
   group_by(year, value) %>% 
   tally %>% 
   preProcess(labels_8) %>% 
-  gghBarPlot("p")
+  gghBarPlot("p", t_size = 5)
 
 # ---- q9 ----
 labels_9 <- c("An ineffective use of time and resources",
@@ -287,15 +309,15 @@ labels_9 <- c("An ineffective use of time and resources",
 "A way to introduce a cultural shift in engineering education",
 "Other, please specify...")
 
-
 cleaned_data %>% 
   filter(q_num == "9",is.na(q_item)) %>% 
   mutate(value = tolower(value)) %>% 
   group_by(year,value) %>% 
   tally %>% 
   preProcess(labels_9) %>% 
-  gghBarPlot("p")
-  
+  gghBarPlot("p", t_size = 5)
+
+
 
 # ---- q10 ----
 labels_10 <- c("A single approach for the institution",
@@ -310,14 +332,14 @@ cleaned_data %>%
   group_by(year,value) %>% 
   tally %>% 
   preProcess(labels_10) %>% 
-  gghBarPlot("p")
+  gghBarPlot("p", t_size = 5)
 
 # ---- q11 ----
 
 labels_11 <- c("Identifying people to be involved",
             "Established objectives and indicators",
             "Mapped the curriculum",
-            "Faculty engagement activities (retreats, professional development regarding outcomes, etc.)",
+            "Faculty engagement activities",
             "Assessment & data collection",
             "Analysis & interpretation of data",
             "Curriculum & program improvement",
@@ -332,8 +354,7 @@ cleaned_data %>%
   tally %>% 
   rename(value = q_item) %>% 
   preProcess(labels_11) %>% 
-  gghBarPlot("p")
-
+  gghBarPlot("p", t_size = 4)
 
 
 # ---- q12 ----
@@ -382,7 +403,7 @@ q12_p <- cleaned_data %>%
       rename(value = q_item) %>% 
       preProcess(., names(get(paste("labels",unique(x$q_num), sep = "_")))) %>% 
       ungroup() %>% 
-      do(plots = gghBarPlot(.,"p") + labs(title = get(paste("subtitle",unique(x$q_num), sep = "_"))))
+      do(plots = gghBarPlot(.,"p", t_size = 3.5) + labs(title = get(paste("subtitle",unique(x$q_num), sep = "_"))))
   }) %>% 
   .$plots
 
@@ -393,6 +414,8 @@ q12_p <- lapply(q12_p, function(x) x + theme(legend.position = "none"))
 
 grid.arrange(p12,arrangeGrob(grobs=q12_p, nrow = 1), legend, nrow = 3,heights=c(5, 10, 1))
 
+
+
 # ---- q13 ----
 labels_13 <- c("yes","no")
 
@@ -402,7 +425,7 @@ p13 <- cleaned_data %>%
   group_by(year, value) %>% 
   tally %>% 
   preProcess(labels_13) %>% 
-  ggHlollipop + ylim(c(0.2,0.9))
+  ggHlollipop(t_size = 4) + ylim(c(0.2,0.9))
 
 labels_13b <- c("Current students",
                "Alumni",
@@ -422,7 +445,7 @@ p13b <- cleaned_data %>%
   tally %>% 
   rename(value = q_item) %>% 
   preProcess(labels_13b) %>% 
-  gghBarPlot("p")
+  gghBarPlot("p", t_size = 5)
 
 grid.arrange(p13, p13b, nrow = 2, heights=c(5, 10))
 
@@ -437,7 +460,7 @@ cleaned_data %>%
   select(year,institution,q_item,value) %>% 
   spread(q_item, value, fill = "not applicable") %>% 
   select(-institution) %>% 
-  likert_plot(levels_14, p_arrange = NULL, t_size = 5, p_center = 3, p_neutral = FALSE) + theme(text = element_text(size=16))
+  likert_plot(levels_14, p_arrange = NULL, t_size = 5, p_center = 3, p_neutral = FALSE) + theme(text = element_text(size=18))
  
 
 # ---- q15 ----
@@ -448,7 +471,7 @@ labels_15 <- c("More professional development for faculty and staff",
 "More faculty involved in assessing student learning outcomes",
 "Stronger administrative and leadership support",
 "Additional financial or staff resources",
-"Technologies and analytics that aggregate outcomes assessment results at various levels to represent institutional performance",
+"Technologies and analytics for outcomes assessment results at various levels to represent institutional performance",
 "Greater sharing and access to assessment results across programs",
 "More valid and reliable assessment measures",
 "External funding",
@@ -458,14 +481,14 @@ labels_15 <- c("More professional development for faculty and staff",
 "Other, please specify:")
 
 
-cleaned_data %>% 
+df<-cleaned_data %>% 
   filter(q_num == 15, value == 1) %>% 
   mutate(value = tolower(value)) %>% 
   group_by(year, q_item) %>% 
   tally %>% 
   rename(value = q_item) %>% 
   preProcess(labels_15) %>% 
-  gghBarPlot("p")
+  gghBarPlot("p", 4) + theme(text = element_text(size = 16))
 
 # ---- q16 ----
 
@@ -481,7 +504,7 @@ cleaned_data %>%
   select(year,institution,q_item,value) %>% 
   spread(q_item, value, fill = "Not Applicable") %>% 
   select(-institution) %>% 
-  likert_plot(levels_16, p_center = 4)
+  likert_plot(levels_16, p_center = 4,t_size = 4,p_arrange = "v")
 
 # ---- q18 ----
 # Highlight others in text
@@ -495,7 +518,7 @@ levels_18 <- c("Very Satisfied",
 cleaned_data %>% 
   filter(q_num=="18", is.na(q_item), !grepl("Other",value)) %>% 
   select(year,value) %>% 
-  likert_plot(levels_18, p_center = 3) + theme(strip.text = element_blank())
+  likert_plot(levels_18, p_center = 3, t_size = 5) + theme(text = element_text(size = 20), strip.text = element_blank())
 
 # ---- q19 ----
 
@@ -512,7 +535,7 @@ cleaned_data %>%
   group_by(year, value) %>% 
   tally %>% 
   preProcess(labels_19) %>% 
-  gghBarPlot("p")
+  gghBarPlot("p", t_size = 5)
 
 
 # ---- q20 ----
@@ -528,7 +551,7 @@ cleaned_data %>%
   group_by(year, value) %>% 
   tally %>% 
   preProcess(labels_20) %>% 
-  gghBarPlot("p")
+  gghBarPlot("p", t_size = 5)
  
 # ---- q21 ----
 
@@ -540,7 +563,7 @@ cleaned_data %>%
   group_by(year, value) %>% 
   tally %>% 
   preProcess(labels_21) %>% 
-  ggHlollipop + expand_limits(y = c(-0.3,1))
+  ggHlollipop(t_size = 5) + expand_limits(y = c(-0.3,1))
 
 # ---- q22 ----
 
@@ -568,7 +591,7 @@ cleaned_data %>%
   tally %>% 
   rename(value = q_item) %>% 
   preProcess(labels_22) %>% 
-  gghBarPlot("p")
+  gghBarPlot("p", t_size = 5)
 
 # ---- q23 ----
 
@@ -582,7 +605,7 @@ cleaned_data %>%
   select(year, institution, q_item, value) %>% 
   spread(q_item, value) %>%
   select(-institution) %>% 
-  likert_plot(levels_23, p_center = 3.5)
+  likert_plot(levels_23, p_center = 3.5, p_arrange = "v",t_size = 5) + theme(text = element_text(size = 20))
 
 # ---- q24 ----
 
@@ -594,7 +617,7 @@ p24 <- cleaned_data %>%
   group_by(year, value) %>% 
   tally %>% 
   preProcess(labels_24) %>% 
-  ggHlollipop + labs(title = str_wrap("Do you have any evidence that outcome-based continuous program improvement has made a difference in student learning at your institution? "),25) +
+  ggHlollipop(t_size = 4) + labs(title = str_wrap("Do you have any evidence that outcome-based continuous program improvement has made a difference in student learning at your institution? "),25) +
   theme(plot.title = element_text(size = 14, hjust = 0.5))
   # gghBarPlot("p")
 
@@ -615,8 +638,8 @@ p24_b <- cleaned_data %>%
   tally %>% 
   rename(value = q_item) %>% 
   preProcess(labels_24b) %>% 
-  gghBarPlot("p") + labs(title = "What is the nature of the evidence collected?") +
-  theme(plot.title = element_text(size = 14, hjust = 0.5))
+  gghBarPlot("p", t_size = 5) + scale_y_continuous(labels = scales::percent, breaks = c(0,1)) + labs(title = "What is the nature of the evidence collected?") +
+  theme(text = element_text(size = 16),plot.title = element_text(size = 14, hjust = 0.5))
 
 grid.arrange(p24, p24_b, layout_matrix = rbind(c(1),c(2),c(2)))
 
@@ -638,7 +661,7 @@ cleaned_data %>%
   tally %>% 
   rename(value = q_item) %>% 
   preProcess(labels_25) %>% 
-  gghBarPlot("p")
+  gghBarPlot("p", t_size = 5)
 
 # ---- q26 ----
 # Definitely look at the other
@@ -677,14 +700,13 @@ treemap(
   title="",
   title.legend="",
   fontsize.labels = c(20,18,16),
-  fontface.labels = "bold",
   fontcolor.labels = "white",
   lowerbound.cex.labels = 0.1,
   bg.labels = 0,
   border.col = "white",
   border.lwds = c(5,0.5,0.5),
   position.legend = "none",
-  align.labels = list(c("left","top"),c("center","center"), c("right", "bottom")),
+  align.labels = list(c("left","top"),c("center","bottom"), c("right", "bottom")),
   drop.unused.levels = TRUE)
 
 # ---- q28 ----
@@ -698,5 +720,5 @@ labels_28 <- c("Very Much",
 cleaned_data %>% 
   filter(q_num=="28") %>% 
   select(year,value) %>%
-  likert_plot(labels_28, p_center = 3.5, p_neutral = FALSE)
+  likert_plot(labels_28, p_center = 3.5, t_size = 5, p_neutral = FALSE)
 
